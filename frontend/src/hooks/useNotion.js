@@ -9,8 +9,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const NOTION_API    = 'https://api.notion.com/v1';
-const NOTION_VER    = '2022-06-28';
+// All Notion calls go through the Netlify proxy function — never direct from browser.
+const NOTION_PROXY  = '/.netlify/functions/notion-proxy';
 
 // DB IDs
 const DB_COMMS      = '49cabd64-a95d-44c3-853a-ec096114aaeb';
@@ -21,18 +21,17 @@ const DB_PERF       = 'e4a49a7f-a303-4b13-8575-f3cbd03ef331';
 const TX_INTERVAL   = 30_000;  // 30s
 const STAT_INTERVAL = 60_000;  // 60s
 
-// ── Notion fetch helper ────────────────────────────────────────────────────
+// ── Notion fetch helper — via proxy ───────────────────────────────────────
 async function notionQuery(token, dbId, body = {}) {
-  const res = await fetch(`${NOTION_API}/databases/${dbId}/query`, {
+  const res = await fetch(NOTION_PROXY, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
-      'Notion-Version': NOTION_VER,
-      'Content-Type': 'application/json',
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ action: 'query', dbId, body }),
   });
-  if (!res.ok) throw new Error(`Notion ${res.status}: ${dbId}`);
+  if (!res.ok) throw new Error(`Notion proxy ${res.status}: ${dbId}`);
   return res.json();
 }
 
