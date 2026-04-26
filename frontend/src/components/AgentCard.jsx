@@ -34,13 +34,10 @@ export default function AgentCard({ agent, selected, hasUnread, onClick }) {
         {agent.name}
       </div>
 
-      {/* Title */}
-      <div className="agent-title" style={{ color: agent.accent, opacity: 0.85 }}>
-        {agent.code} · {agent.title.split(' ').slice(0, 2).join(' ')}
+      {/* Full title */}
+      <div className="agent-title" style={{ color: agent.accent, opacity: 0.9 }}>
+        {agent.title}
       </div>
-
-      {/* Duty */}
-      <div className="agent-duty">{agent.duty}</div>
 
       {/* Unread dot */}
       {hasUnread && !selected && (
