@@ -42,14 +42,10 @@ h1,h2,h3 { font-family: 'Rajdhani', sans-serif; }
 /* ─── APP SHELL ──────────────────────────────────────────────────────────── */
 .app {
   display: grid;
-  grid-template-rows: 54px 1fr 64px;
+  grid-template-rows: 54px 1fr;
   grid-template-columns: 1fr 290px;
   height: 100vh;
   gap: 0;
-}
-/* When config drawer is open, insert extra row */
-.app.config-open {
-  grid-template-rows: 54px 38px 1fr 64px;
 }
 
 /* ─── HEADER ─────────────────────────────────────────────────────────────── */
@@ -193,13 +189,15 @@ h1,h2,h3 { font-family: 'Rajdhani', sans-serif; }
 
 /* ─── MAIN LAYOUT ────────────────────────────────────────────────────────── */
 .main-layout {
+  min-height: 0;
   grid-column: 1 / -1;
   grid-row: 2;
   display: grid;
   grid-template-columns: 1fr 290px;
   overflow: hidden;
 }
-.app.config-open .main-layout { grid-row: 3; }
+.app.config-open .main-layout {
+  min-height: 0; grid-row: 3; }
 
 .content-area {
   display: grid;
@@ -212,13 +210,15 @@ h1,h2,h3 { font-family: 'Rajdhani', sans-serif; }
 .agent-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 10px;
   overflow: hidden;
 }
 
 .agent-card {
+  min-height: 0;
+  min-width: 0;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -497,6 +497,7 @@ h1,h2,h3 { font-family: 'Rajdhani', sans-serif; }
 .stat-row:last-child { border-bottom: none; }
 .stat-label { color: var(--text-dim); }
 .stat-value {
+  text-shadow: 0 0 8px currentColor;
   font-family: 'Rajdhani', sans-serif;
   font-size: 22px;
   font-weight: 700;
@@ -642,10 +643,12 @@ h1,h2,h3 { font-family: 'Rajdhani', sans-serif; }
     grid-template-rows: 54px 38px 1fr 1fr 64px;
   }
   .main-layout {
+  min-height: 0;
     grid-template-columns: 1fr;
     grid-row: 2 / 4;
   }
-  .app.config-open .main-layout { grid-row: 3 / 5; }
+  .app.config-open .main-layout {
+  min-height: 0; grid-row: 3 / 5; }
   .transaction-log {
     grid-column: 1;
     grid-row: unset;
@@ -673,3 +676,15 @@ h1,h2,h3 { font-family: 'Rajdhani', sans-serif; }
   .brand-name { font-size: 20px; letter-spacing: 2px; }
   .brand-sub  { display: none; }
 }
+
+/* ─── VISIBILITY OVERRIDES ───────────────────────────────────────────────── */
+/* Ensure all key text is legible against dark backgrounds */
+.bubble-text          { color: #ffffff !important; }
+.bubble-user .bubble-text { color: #ff8c3a !important; }
+.stat-label           { color: #aaaacc !important; }
+.stat-value           { color: inherit; font-weight: 700; }
+.agent-name           { color: #e8e8f0; }
+.todo-text            { color: #e8e8f0 !important; }
+.txn-subject          { color: #e8e8f0 !important; }
+.txn-route            { color: #8888aa !important; }
+.target-value         { color: #f59e0b !important; }
