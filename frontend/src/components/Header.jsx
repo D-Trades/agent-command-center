@@ -14,18 +14,20 @@ export default function Header({ notionConnected, onNotionConnect }) {
     setConnecting(true);
     setError('');
     try {
-      // Validate token by hitting Notion API directly
-      const res = await fetch('https://api.notion.com/v1/users/me', {
+      const res = await fetch('/.netlify/functions/notion-proxy', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${token.trim()}`,
-          'Notion-Version': '2022-06-28',
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${token.trim()}`,
         },
+        body: JSON.stringify({ action: 'validate' }),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.type === 'person' || res.ok && data.object === 'user' || res.ok && data.id) {
         onNotionConnect(token.trim());
         setDrawerOpen(false);
       } else {
-        setError('Invalid token — Notion returned ' + res.status);
+        setError('Invalid token — ' + (data.message ?? `status ${res.status}`));
       }
     } catch {
       setError('Connection failed. Check token and try again.');
