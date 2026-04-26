@@ -1,26 +1,31 @@
 // App.jsx — D-Trades Agent Command Center
-// Root layout and state. M2: mock data. M3: live chat. M4: live Notion.
+// M4: useNotion hook wired — live Notion data when token connected.
 
-import { useState, useEffect } from 'react';
-import Header from './components/Header.jsx';
-import AgentGrid from './components/AgentGrid.jsx';
-import ChatPanel from './components/ChatPanel.jsx';
-import ChatInput from './components/ChatInput.jsx';
-import DailyStats from './components/DailyStats.jsx';
-import TodoPanel from './components/TodoPanel.jsx';
-import TransactionLog from './components/TransactionLog.jsx';
-import { getAgent } from './data/agents.js';
+import { useState } from 'react';
+import Header          from './components/Header.jsx';
+import AgentGrid       from './components/AgentGrid.jsx';
+import ChatPanel       from './components/ChatPanel.jsx';
+import ChatInput       from './components/ChatInput.jsx';
+import DailyStats      from './components/DailyStats.jsx';
+import TodoPanel       from './components/TodoPanel.jsx';
+import TransactionLog  from './components/TransactionLog.jsx';
+import useNotion       from './hooks/useNotion.js';
+import { getAgent }    from './data/agents.js';
 import './App.css';
 
 const NOTION_TOKEN_KEY = 'dtrades_notion_token';
 
 export default function App() {
   const [selectedAgentId, setSelectedAgentId] = useState(null);
-  const [unreadIds, setUnreadIds] = useState([]);
-  const [notionToken, setNotionToken] = useState(
+  const [unreadIds,       setUnreadIds]        = useState([]);
+  const [notionToken,     setNotionToken]       = useState(
     () => localStorage.getItem(NOTION_TOKEN_KEY) ?? ''
   );
-  const [chatLoading, setChatLoading] = useState(false);
+  const [chatLoading, setChatLoading]   = useState(false);
+  const [pendingMessage, setPendingMessage] = useState(null);
+
+  // M4 — live Notion data
+  const { transactions, stats, todos, connected } = useNotion(notionToken);
 
   const selectedAgent = getAgent(selectedAgentId);
 
@@ -31,14 +36,8 @@ export default function App() {
 
   function handleAgentSelect(id) {
     setSelectedAgentId(id);
-    // Clear unread for selected agent
-    if (id) setUnreadIds((prev) => prev.filter((u) => u !== id));
+    if (id) setUnreadIds(prev => prev.filter(u => u !== id));
   }
-
-  // M3 hook: send from ChatInput → ChatPanel handles the actual API call
-  // For now ChatInput fires into ChatPanel via ref-less approach:
-  // we pass a callback that ChatPanel exposes via state lifting
-  const [pendingMessage, setPendingMessage] = useState(null);
 
   function handleSend(text) {
     setPendingMessage({ text, ts: Date.now() });
@@ -47,32 +46,28 @@ export default function App() {
   return (
     <div className="app">
       <Header
-        notionConnected={!!notionToken}
+        notionConnected={connected}
         onNotionConnect={handleNotionConnect}
       />
 
       <main className="main-layout">
-        {/* Left: agent grid + bottom panels */}
         <div className="content-area">
-          {/* Agent grid */}
           <AgentGrid
             selectedId={selectedAgentId}
             unreadIds={unreadIds}
             onSelect={handleAgentSelect}
           />
 
-          {/* Bottom row: chat, stats, todo */}
           <div className="bottom-row">
             <ChatPanel
               selectedAgentId={selectedAgentId}
               pendingMessage={pendingMessage}
               onLoadingChange={setChatLoading}
             />
-            <DailyStats stats={null} />
-            <TodoPanel todos={null} />
+            <DailyStats stats={stats}        connected={connected} />
+            <TodoPanel  todos={todos}        connected={connected} />
           </div>
 
-          {/* Full-width input bar */}
           <ChatInput
             selectedAgent={selectedAgent}
             onSend={handleSend}
@@ -80,8 +75,7 @@ export default function App() {
           />
         </div>
 
-        {/* Right: transaction log */}
-        <TransactionLog entries={null} />
+        <TransactionLog entries={transactions} connected={connected} />
       </main>
     </div>
   );
